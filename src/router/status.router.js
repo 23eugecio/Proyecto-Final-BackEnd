@@ -7,10 +7,10 @@ import { verifyTokenMiddleware } from "../middlewares/auth.middleware.js";
 
 const statusRouter = express.Router()
 
-
+statusRouter.use(verifyTokenMiddleware)
 
 statusRouter.get('/ping', getPingController)
-statusRouter.get('/protected-route/ping', verifyTokenMiddleware, getPingController)
+statusRouter.get('/protected-route/ping', verifyTokenMiddleware(['admin', 'user']), getPingController)
 
 
 

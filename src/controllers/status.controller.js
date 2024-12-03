@@ -1,5 +1,6 @@
 import ResponseBuilder from "../utils/Builders/responseBuilder.js";
 
+
 export const getPingController = (req, res) => {
 
     try{

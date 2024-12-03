@@ -2,10 +2,19 @@ import mongoose from "mongoose";
 
 
 const UserSchema = new mongoose.Schema({
-    name: {
+
+    phone: {
         type: String,
         required: true,
         unique: true
+    },
+    name: {
+        type: String,
+        required: true
+    },
+    avatar: {
+        type: String,
+        default: ''
     },
     email: {
         type: String,
@@ -16,23 +25,39 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    emailVerified: {
-        type: Boolean,  
-        default: false
-    },
-    verificationToken: {
+    status: {
         type: String,
-        required: true  
-    },
-    role: {
-        type: String,
-        required: true,
-        default: 'user'
+        default: 'Hey there! I am using WhatsApp'
     }
-});
+},
+    { timestamps: true })
+
+    const User = mongoose.model('User', UserSchema)
+
+    export default User
 
 
-const User = mongoose.model('User', UserSchema);
 
 
-export default User;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,30 +1,54 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+
 
 const MessageSchema = new mongoose.Schema({
+
     sender: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        type: String,
         required: true
     },
-    receiver: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+    reciber: { 
+        type: String,
         required: true
     },
     content: {
         type: String,
         required: true
     },
+    image: {
+        type: String
+    },
     type: {
         type: String,
-        enum: ['text', 'image', 'audio', 'video'],
         default: 'text'
     },
-    status: {
-        type: String,
-        enum: ['sent', 'delivered', 'read'],
-        default: 'sent'
+    timestamp: {
+        type: Date,
+        default: Date.now
     }
-}, { timestamps: true });
+});
 
-module.exports = mongoose.model('Message', MessageSchema);
+
+const Message = mongoose.model('Message', MessageSchema);
+
+export default Message
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
