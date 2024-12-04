@@ -1,173 +1,61 @@
-
-import Message from '../models/message.model.js';
-import { MessageRepository } from '../repositories/message.repository.js';
-import ResponseBuilder from '../utils/Builders/responseBuilder.js';
+import MessageRepository from "../repositories/message.repository.js"
+import UserRepository from "../repositories/user.repository.js"
 
 
-export const createMessageController = async (req, res) => {
-    try {
-        const { sender, reciber, content, image, type = 'text' } = req.body;
 
-        if (!sender || !reciber || !content) {
-            const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(400)
-                .setMessage('Bad request')
-                .setPayload({
-                    'detail': "Missing required fields"
-                })
-                .build();
-            return res.status(400).json(response);
-        }
+const createMessage = async (req, res) => {
+    try{
+        const user_id = req.user.id
+        const {receiver_id, content} = req.body
 
-        const newMessage = new Message({
-            sender,
-            reciber,  
-            content,
-            image,
-            type, 
-            timestamp: new Date()  
-        });
+        const new_message = await MessageRepository.createMessage({author: user_id, receiver: receiver_id, content: content})
 
-        await newMessage.save();
+        await UserRepository.addContact(user_id, receiver_id)
 
-        const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(201)
-            .setMessage('Created')
-            .setPayload({
-                data: {
-                    id: newMessage._id,  
-                    sender: newMessage.sender,
-                    reciber: newMessage.reciber,  
-                    content: newMessage.content,
-                    image: newMessage.image,
-                    type: newMessage.type,
-                    timestamp: newMessage.timestamp
-                }
-            })
-            .build();
+        const conversation = await MessageRepository.findMessagesBetweenUsers(user_id, receiver_id)
+        
 
-        return res.status(201).json(response);
-
-    } catch (error) {
-        console.error("Error saving message:", error);
-        const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(500)
-            .setMessage('Internal server error')
-            .setPayload({
-                detail: "Error saving message"
-            })
-            .build();
-        return res.status(500).json(response);
+        return res.status(201).json({
+            ok: true,
+            status: 201,
+            message: 'Message created',
+            data: {
+                message: new_message
+            }
+        })
     }
-};
-
-
-
-export const getAllMessagesController = async (req, res) => {
-    try {
-        const messages = await MessageRepository.getAllMessages();
-        const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(200)
-            .setMessage('Messages found')
-            .setPayload({
-                data: messages
-            })
-            .build();
-        return res.json(response);
-    } catch (error) {
-        console.error("Error:", error);
-        const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(500)
-            .setMessage('Internal server error')
-            .setPayload({
-                detail: "Error fetching messages"
-            })
-            .build();
-        return res.status(500).json(response);
+    catch(error){
+        console.error(error)
+        return res.status(500).json({
+            ok: false,
+            status: 500,
+            message: 'Internal server error'
+        })
+    }
 }
-};
 
-
-export const getMessageByIdController = async (req, res) => {
-    try {    
-        const { id } = req.params;          
-        const message = await MessageRepository.getMessageById(id);
-        if (!message) {
-            const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(404)
-                .setMessage('Message not found')
-                .setPayload({
-                    detail: "Message not found"
-                })
-                .build();
-            return res.status(404).json(response);
-        }
-        const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(200)
-            .setMessage('Message found')
-            .setPayload({
-                data: message
-            })
-            .build();
-        return res.json(response);
-    } catch (error) {   
-        console.error("Error:", error);
-        const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(500)
-            .setMessage('Internal server error')
-            .setPayload({
-                detail: "Error message"
-            })
-            .build();
-        return res.status(500).json(response);
+const getConversation = async (req, res) => {  
+    try{
+        const user_id = req.user.id
+        const {receiver_id} = req.params
+        const conversation = await MessageRepository.findMessagesBetweenUsers(user_id, receiver_id)
+        return res.status(200).json({
+            ok: true,
+            status: 200,
+            message: 'Conversation found',
+            data: {
+                conversation
+            }
+        })
     }
-};
-
-export const updateMessageController = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { content } = req.body;
-        const updatedMessage = await MessageRepository.updateMessage(id, content);
-        if (!updatedMessage) {
-            const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(404)
-                .setMessage('Message not found')
-                .setPayload({
-                    detail: "Message not found"
-                })
-                .build();
-            return res.status(404).json(response);
-        }
-        const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(200)
-            .setMessage('Message updated')
-            .setPayload({
-                data: updatedMessage
-            })
-            .build();
-        return res.json(response);
-    } catch (error) {
-        console.error("Error:", error);
-        const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(500)
-            .setMessage('Internal server error')
-            .setPayload({
-                detail: "Error updating message"
-            })
-            .build();
-        return res.status(500).json(response);    
+    catch(error){
+        console.error(error)
+        return res.status(500).json({
+            ok: false,
+            status: 500,
+            message: 'Internal server error'
+        })
     }
-};
+}
 
-export default { createMessageController, getAllMessagesController, getMessageByIdController, updateMessageController};    
+export {createMessage, getConversation}

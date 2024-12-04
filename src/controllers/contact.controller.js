@@ -1,5 +1,5 @@
 
-import ContactRepository from '../repositories/contact.repository.js'
+import UserRepository from '../repositories/contact.repository.js'
 import ResponseBuilder from '../utils/Builders/responseBuilder.js'
 
 

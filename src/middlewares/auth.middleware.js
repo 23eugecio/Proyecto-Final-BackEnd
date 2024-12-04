@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 
 
-export const verifyTokenMiddleware = (roles_permitidos = []) => {
+export const authMiddleware = (roles_permitidos = []) => {
 
     return (req, res, next) => {
         try {
@@ -110,4 +110,4 @@ export const verifyApiKeyMiddleware = (req, res, next) => {
     }
 }
 
-export default { verifyTokenMiddleware, verifyApiKeyMiddleware }
+export default { authMiddleware, verifyApiKeyMiddleware }

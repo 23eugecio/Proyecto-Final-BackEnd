@@ -1,36 +1,26 @@
-import User from "../models/user.model.js"
+import User from "../models/user.model.js";
 
 class UserRepository {
-
-    static async obtenerPorId(id) {
-        try {
-            const user = await User.findOne({ _id: id });
-            return user;
-        } catch (error) {
-            console.error("Error fetching user by ID:", error);
-            throw error;
-        }
+    static async createUser(user_data) {
+        return User.create(user_data)
+    }
+    static async addContact(user_id, contact_id){
+        return User.findByIdAndUpdate(user_id, {
+            $push:{
+                contacts: contact_id
+            }
+        })
+    }
+    static async findUserById (user_id){
+        return User.findById(user_id)
     }
 
-
-    static async obtenerPorEmail(email) {
-        try {
-            const user = await User.findOne({ email });
-            return user;
-        } catch (error) {
-            console.error("Error fetching user by email:", error);
-            throw error;
-        }
+    static async findUserByUsername (username){
+        return User.findOne({username: username})
     }
 
-
-    static async guardarUsuario(user) {
-        try {
-            return await user.save();
-        } catch (error) {
-            console.error("Error saving user:", error);
-            throw error;
-        }
+    static async findContacts(user_id){
+        return User.findById(user_id).populate('contacts', 'username')
     }
 
     static async setEmailVerified(value, user_id) {

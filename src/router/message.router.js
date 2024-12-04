@@ -1,10 +1,11 @@
-import express from 'express';
-import { createMessageController } from '../controllers/message.controller.js';
+import express from "express";
+import { createMessage, getConversation } from "../controllers/message.controller.js";
+import { authMiddleware }from "../middlewares/auth.middleware.js";
 
 
+const messageRouter = express.Router();
 
-const router = express.Router();
+messageRouter.post('/send', authMiddleware, createMessage)
+messageRouter.get('/conversation/:receiver_id', authMiddleware, getConversation)
 
-router.post('/messages', createMessageController);
-
-export default router;
+export default messageRouter

@@ -2,17 +2,18 @@ import express from "express";
 import { 
     forgotPasswordController,
     loginController, 
-    registerUserController,  
+    registerUserController,
     resetTokenController,  
     verifyMailValidationTokenController 
 } from "../controllers/auth.controller.js";
 import { verifyApiKeyMiddleware } from "../middlewares/auth.middleware.js";
+import { validateRegisterData } from "../middlewares/validate.middleware.js";
 
 
 
 const authRouter = express.Router();
 
-authRouter.post('/register', verifyApiKeyMiddleware, registerUserController)
+authRouter.post('/register', validateRegisterData,  verifyApiKeyMiddleware, registerUserController)
 authRouter.get('/verify/:verification_token', verifyMailValidationTokenController)
 authRouter.post('/login', verifyApiKeyMiddleware, loginController)
 authRouter.post('/forgot-password', verifyApiKeyMiddleware, forgotPasswordController)

@@ -1,22 +1,10 @@
 import mongoose from "mongoose";
 
 
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
 
-    phone: {
-        type: String,
-        required: true,
-        unique: true
-    },
+
     name: {
-        type: String,
-        required: true
-    },
-    avatar: {
-        type: String,
-        default: ''
-    },
-    email: {
         type: String,
         required: true,
         unique: true
@@ -25,14 +13,27 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    status: {
+    avatar: {
         type: String,
-        default: 'Hey there! I am using WhatsApp'
-    }
-},
-    { timestamps: true })
+        required: true,
 
-    const User = mongoose.model('User', UserSchema)
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    contacts: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ]
+        
+},)
+
+
+    const User = mongoose.model('User', userSchema)
 
     export default User
 

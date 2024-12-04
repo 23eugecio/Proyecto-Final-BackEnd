@@ -1,17 +1,17 @@
 import express from "express";
-import ResponseBuilder from "../utils/Builders/responseBuilder.js";
 import { getPingController } from "../controllers/status.controller.js";
-import { verifyTokenMiddleware } from "../middlewares/auth.middleware.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 
 
 const statusRouter = express.Router()
 
-statusRouter.use(verifyTokenMiddleware)
+statusRouter.use(express.json())
+statusRouter.use(authMiddleware)
 
 statusRouter.get('/ping', getPingController)
-statusRouter.get('/protected-route/ping', verifyTokenMiddleware(['admin', 'user']), getPingController)
-
+statusRouter.get('/protected-route/ping', authMiddleware(), getPingController)
+statusRouter.get('/admin/ping', authMiddleware(), getPingController)
 
 
 export default statusRouter
