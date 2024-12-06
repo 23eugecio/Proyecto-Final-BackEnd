@@ -13,9 +13,9 @@ import { validateRegisterData } from "../middlewares/validate.middleware.js";
 
 const authRouter = express.Router();
 
-authRouter.post('/register', validateRegisterData,  verifyApiKeyMiddleware, registerUserController)
+authRouter.post('/register', validateRegisterData, registerUserController)
 authRouter.get('/verify/:verification_token', verifyMailValidationTokenController)
-authRouter.post('/login', verifyApiKeyMiddleware, loginController)
+authRouter.post('/login', loginController)
 authRouter.post('/forgot-password', verifyApiKeyMiddleware, forgotPasswordController)
 authRouter.put('/reset-password/:reset_token', verifyApiKeyMiddleware, resetTokenController)
 
