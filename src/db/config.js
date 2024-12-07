@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import ENVIROMENT from "../config/enviroment.config.js";
 
 
-mongoose.connect(ENVIROMENT.MONGODB_URI)
+mongoose.connect(ENVIROMENT.DB_URL)
 .then(
     () => 
         console.log('Conexión exitosa con la DB'))
