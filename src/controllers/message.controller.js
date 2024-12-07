@@ -9,6 +9,7 @@ const createMessage = async (req, res) => {
         const new_message = await MessageRepository.createMessage({author: user_id, receiver: receiver_id, content: content})
 
         const contact = await UserRepository.addContact(user_id, receiver_id)
+        console.log('contact added:', contact)
 
         const conversation = await MessageRepository.findMessagesBetweenUsers(user_id, receiver_id)
         

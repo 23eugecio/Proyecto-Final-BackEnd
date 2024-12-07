@@ -1,39 +1,34 @@
-import ENVIROMENT from "./config/enviroment.config.js";
-import express from "express";
-import configdDb from "./db/config.js";  
-import authRouter from "./router/auth.router.js";
+import express from 'express'
+import ENVIROMENT from './config/enviroment.config.js'
+import configdDb from "./db/config.js";
 import cors from 'cors'
-import { authMiddleware, verifyApiKeyMiddleware } from "./middlewares/auth.middleware.js";
-import contactRouter from "./router/contact.router.js";
-import messageRouter from "./router/message.router.js";
-import statusRouter from "./router/status.router.js";
-import mongoose from "./db/config.js";
-
-
-const app = express();
+import authRouter from './routes/auth.router.js'
+import messagesRouter from './routes/message.router.js'
+import contactRouter from './routes/contact.router.js'
+const app = express()
 
 app.use(cors())
 app.use(express.json())
 
-app.use(verifyApiKeyMiddleware)
-app.use(authMiddleware)
 
-app.use('/api/status', statusRouter);
-app.use('/api/auth', authRouter)
-app.use('/api/contacts', contactRouter)
-app.use('/api/messages', messageRouter);
-
-
-
-const PORT = process.env.PORT || 3000
-mongoose.connect(ENVIROMENT.DB_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-}).then(() => {
-    console.log('Connected to MongoDB!');
-    app.listen(ENVIROMENT.PORT, () => {
-        console.log(`server running on port ${ENVIROMENT.PORT}`)});
+app.get('/api/status/ping', (req, res) => {
+    res.status(200).json({
+        ok:true,
+        status: 200,
+        message: 'pong'
     })
-    .catch(error => console.error('Connection failed', error));
+})
+
+
+app.use('/api/auth', authRouter)
+app.use('/api/messages', messagesRouter)
+app.use('/api/contacts', contactRouter)
+
+
+
+app.listen(ENVIROMENT.PORT, () =>{
+    console.log(`Server is running on port ${ENVIROMENT.PORT}`)
+})
+
 
 
