@@ -1,6 +1,5 @@
 import Message from "../models/message.model.js";
 
-
 class MessageRepository{
     static async createMessage(message_data){
         return Message.create(message_data)

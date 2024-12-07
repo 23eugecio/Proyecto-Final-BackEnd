@@ -1,5 +1,3 @@
-
-import UserRepository from '../repositories/contact.repository.js'
 import ResponseBuilder from '../utils/Builders/responseBuilder.js'
 
 
@@ -9,7 +7,6 @@ export const getAllContactController = async (req, res) => {
         const contacts = await ContactRepository.getContact()
         const response = new ResponseBuilder()
             .setOk(true)
-            .setStatus(200)
             .setMessage('Contacts found')
             .setPayload({
                 contacts: contacts

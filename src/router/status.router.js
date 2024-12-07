@@ -14,4 +14,5 @@ statusRouter.get('/protected-route/ping', authMiddleware(), getPingController)
 statusRouter.get('/admin/ping', authMiddleware(), getPingController)
 
 
+
 export default statusRouter

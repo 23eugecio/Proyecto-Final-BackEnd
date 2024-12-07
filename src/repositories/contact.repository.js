@@ -1,6 +1,6 @@
 import Contact from "../models/message.model.js";
 
-export class ContactRepository {
+class ContactRepository {
 
     static async getContact() {
         return Contact.find({active: true})

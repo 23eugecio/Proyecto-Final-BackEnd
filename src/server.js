@@ -3,13 +3,11 @@ import express from "express";
 import configdDb from "./db/config.js";  
 import authRouter from "./router/auth.router.js";
 import cors from 'cors'
-import contactRouter from "./router/contact.router.js";
 import { authMiddleware, verifyApiKeyMiddleware } from "./middlewares/auth.middleware.js";
+import contactRouter from "./router/contact.router.js";
 import messageRouter from "./router/message.router.js";
 import statusRouter from "./router/status.router.js";
-import UserRepository from "./repositories/user.repository.js";
-import ContactRepository from "./repositories/contact.repository.js";
-import MessageRepository from "./repositories/message.repository.js";
+import mongoose from "./db/config.js";
 
 
 const app = express();
@@ -27,10 +25,15 @@ app.use('/api/messages', messageRouter);
 
 
 
-UserRepository.connect(configdDb)
-ContactRepository.connect(configdDb)
-MessageRepository.connect(configdDb)
+const PORT = process.env.PORT || 3000
+mongoose.connect(ENVIROMENT.DB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+}).then(() => {
+    console.log('Connected to MongoDB!');
+    app.listen(ENVIROMENT.PORT, () => {
+        console.log(`server running on port ${ENVIROMENT.PORT}`)});
+    })
+    .catch(error => console.error('Connection failed', error));
 
-app.listen(ENVIROMENT.PORT, () => {
-    console.log(`server running on port ${ENVIROMENT.PORT}`)
-})
+

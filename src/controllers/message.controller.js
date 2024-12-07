@@ -1,8 +1,6 @@
 import MessageRepository from "../repositories/message.repository.js"
 import UserRepository from "../repositories/user.repository.js"
 
-
-
 const createMessage = async (req, res) => {
     try{
         const user_id = req.user.id
@@ -10,7 +8,7 @@ const createMessage = async (req, res) => {
 
         const new_message = await MessageRepository.createMessage({author: user_id, receiver: receiver_id, content: content})
 
-        await UserRepository.addContact(user_id, receiver_id)
+        const contact = await UserRepository.addContact(user_id, receiver_id)
 
         const conversation = await MessageRepository.findMessagesBetweenUsers(user_id, receiver_id)
         
@@ -20,7 +18,8 @@ const createMessage = async (req, res) => {
             status: 201,
             message: 'Message created',
             data: {
-                message: new_message
+                message: new_message,
+                conversation: conversation
             }
         })
     }
@@ -58,4 +57,4 @@ const getConversation = async (req, res) => {
     }
 }
 
-export {createMessage, getConversation}
+export default { createMessage, getConversation }
