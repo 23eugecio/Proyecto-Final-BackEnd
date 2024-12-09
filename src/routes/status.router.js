@@ -1,5 +1,4 @@
 import express from "express";
-import  ResponseBuilder from "../utils/Builders/responseBuilder.js";
 import { getPingController } from "../controllers/status.controller.js";
 import { verifyTokenMiddleware, verifyApiKeyMiddleware } from "../middlewares/auth.middleware.js";
 

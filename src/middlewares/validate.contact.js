@@ -1,5 +1,4 @@
-
-export const validateContactId = (req, res, next) => {
+const validateContactId = (req, res, next) => {
     const { contact_id } = req.params;
 
     if (!contact_id || isNaN(contact_id)) {
@@ -8,4 +7,4 @@ export const validateContactId = (req, res, next) => {
     next();
 };
 
-
+export default validateContactId

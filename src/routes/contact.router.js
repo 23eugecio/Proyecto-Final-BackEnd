@@ -1,12 +1,12 @@
 import express from "express";
-import { verifyApikeyMiddleware, verifyTokenMiddleware } from "../middlewares/auth.middleware.js";
+import { verifyApiKeyMiddleware, verifyTokenMiddleware } from "../middlewares/auth.middleware.js";
 import { getContacts, addContact, updateContact, deleteContact } from "../controllers/contact.controller.js";
-import { validateContactId } from "../middlewares/validate.contact.js";
+import validateContactId from "../middlewares/validate.contact.js";
 
 const contactRouter = express.Router();
 
 
-contactRouter.use(verifyTokenMiddleware, verifyApikeyMiddleware); 
+contactRouter.use(verifyTokenMiddleware, verifyApiKeyMiddleware); 
 
 
 contactRouter.get("/", getContacts);

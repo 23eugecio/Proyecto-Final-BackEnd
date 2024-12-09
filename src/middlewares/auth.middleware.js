@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 import ResponseBuilder from "../utils/Builders/responseBuilder.js"
 
 
-export const verifyTokenMiddleware = (roles_permitidos = []) => {
+export const verifyTokenMiddleware = (user_permitidos = []) =>  {
 
     return (req, res, next) => {
         try {
@@ -12,10 +12,10 @@ export const verifyTokenMiddleware = (roles_permitidos = []) => {
             if (!auth_header) {
                 const response = new ResponseBuilder()
                     .setOk(false)
-                    .setMessage('Falta token de autorizacion')
+                    .setMessage('Missing token')
                     .setStatus(401)
                     .setPayload({
-                        detail: 'Se espera un token de autorizacion'
+                        detail: 'Wait for a valid token'
                     })
                     .build()
 
@@ -25,10 +25,10 @@ export const verifyTokenMiddleware = (roles_permitidos = []) => {
             if (!access_token) {
                 const response = new ResponseBuilder()
                     .setOk(false)
-                    .setMessage('El token de autorizacion esta malformado')
+                    .setMessage('Malformed token')
                     .setStatus(401)
                     .setPayload({
-                        detail: 'Se espera un token de autorizacion'
+                        detail: 'Malformed token'
                     })
                     .build()
 
@@ -38,13 +38,13 @@ export const verifyTokenMiddleware = (roles_permitidos = []) => {
 
             req.user = decoded
 
-            if(roles_permitidos.length &&  !roles_permitidos.includes(req.user.role)){
+            if(user_permitidos.length &&  !user_permitidos.includes(req.user.role)){
                 const response = new ResponseBuilder()
                     .setOk(false)
-                    .setMessage('Acceso restringido')
+                    .setMessage('You do not have permission to perform this operation')
                     .setStatus(403)
                     .setPayload({
-                        detail: 'No tienes los permisos necesarios para realizar esta operacion'
+                        detail: 'You do not have permission to perform this operation'
                     })
                     .build()
 
@@ -56,7 +56,7 @@ export const verifyTokenMiddleware = (roles_permitidos = []) => {
         catch (error) {
             const response = new ResponseBuilder()
                 .setOk(false)
-                .setMessage('Fallo al autentificar')
+                .setMessage('Authorization error')
                 .setStatus(401)
                 .setPayload(
                     {
@@ -70,7 +70,7 @@ export const verifyTokenMiddleware = (roles_permitidos = []) => {
 
 }
 
-export const verifyApikeyMiddleware = (req, res, next) => {
+export const verifyApiKeyMiddleware = (req, res, next) => {
     console.log('chau')
     try {
         const apikey_header = req.headers['x-api-key']
@@ -80,7 +80,7 @@ export const verifyApikeyMiddleware = (req, res, next) => {
                 .setMessage('Unauthorized')
                 .setStatus(401)
                 .setPayload({
-                    detail: 'Se espera un api-key'
+                    detail: 'Wait for a valid api-key'
                 })
                 .build()
 
@@ -92,7 +92,7 @@ export const verifyApikeyMiddleware = (req, res, next) => {
                 .setMessage('Unauthorized')
                 .setStatus(401)
                 .setPayload({
-                    detail: 'Se espera un api-key valida'
+                    detail: 'Invalid api-key'
                 })
                 .build()
 
@@ -107,7 +107,7 @@ export const verifyApikeyMiddleware = (req, res, next) => {
             .setMessage('Internal server error')
             .setStatus(500)
             .setPayload({
-                detail: 'No se pudo validar la api-key'
+                detail: 'Internal server error'
             })
             .build()
 
