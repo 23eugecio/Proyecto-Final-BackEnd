@@ -1,21 +1,37 @@
-import transporter from "../config/transporter.config.js"
+import transporter from "../config/transporter.config.js";
 
-
-
-const sendEmail = async (options) => {
-    try{
-        let response = await transporter.sendMail(options)
-        return response
+export const sendEmail = async (options) => {
+    try {
+        let response = await transporter.sendMail(options);
+        return response;
+    } catch (error) {
+        console.error('Error al enviar el correo electrónico: ', error);
+        throw error;
     }
-    catch(error){
-        console.error('Error al enviar Email: ', error)
-        throw error
+};
+
+
+export const sendLoginEmail = async (userEmail) => {
+    const mailOptions = {
+        html: 'Hello from WhatsApp',  
+        subject: 'We are testing the connection', 
+        to: userEmail  
+    };
+
+    try {
+        const response = await sendEmail(mailOptions);
+        console.log('Email sent successfully:', response);
+    } catch (error) {
+        console.error('Error sending Login Email:', error);
     }
-}
+};
 
-sendEmail({
-    html: 'Hello from WhatsApp',
-    subject: 'We are testing the connection',
-    to: 'mariaeugeniaciotti8@gmail.com'})
+const simulateLogin = async () => {
+    const userEmail = 'mariaeugeniaciotti8@gmail.com';  
+    await sendLoginEmail(userEmail);
+};
 
-export {sendEmail}
+
+simulateLogin();
+
+export default sendEmail 

@@ -1,4 +1,3 @@
-
 import User from "../models/user.model.js";
 
 class UserRepository {
@@ -25,17 +24,7 @@ class UserRepository {
     }
 
     static async setEmailVerified(value, user_id) {
-        try {
-            const user = await UserRepository.obtenerPorId(user_id);
-            if (!user) {
-                throw new Error("User not found");
-            }
-            user.emailVerified = value;
-            return await UserRepository.guardarUsuario(user);
-        } catch (error) {
-            console.error("Error setting email verified:", error);
-            throw error;
-        }
+        return User.findByIdAndUpdate(user_id, { emailVerified: value }, { new: true })
     }
 }
 

@@ -1,5 +1,10 @@
 
 class ResponseBuilder {
+    constructor() {
+        this.status = 'success'; 
+        this.payload = null;
+        this.message = null;
+    }
     response = {
         ok: false,
         status: 100,
@@ -23,7 +28,12 @@ class ResponseBuilder {
         return this;
     }
     build() {
-        return this.response;
+        return {
+            ok: this.response.ok,
+            status: this.response.status,
+            message: this.response.message,
+            payload: this.response.payload
+        }
     }
 }
 

@@ -1,21 +1,125 @@
 import ResponseBuilder from '../utils/Builders/responseBuilder.js'
+import UserRepository from "../repositories/user.repository.js";
 
-
-
-export const getAllContactController = async (req, res) => {
+export const addContact = async (req, res) => {
     try {
-        const contacts = await ContactRepository.getContact()
+        const user_id = req.user.id
+        const { contact_username } = req.body
+        const user_found = await UserRepository.findUserByUsername(contact_username)
+
+        if (!user_found) {
+            const response = new ResponseBuilder()
+                .setOk(false)
+                .setStatus(404)
+                .setMessage('User not found')
+                .setPayload({
+                    detail: 'User not found'
+                })
+                .build()
+            return res.status(404).json(response)
+        }
+
+        if (user_found._id === user_id) {
+            const response = new ResponseBuilder()
+                .setOk(false)
+                .setStatus(400)
+                .setMessage('You cannot add yourself as a contact')
+                .setPayload({
+                    detail: 'You cannot add yourself as a contact'
+                })
+                .build()
+            return res.status(400).json(response)
+        }
+
+        const user = await UserRepository.findById(user_id)
+        if (user.contacts.includes(user_found._id)) {
+            const response = new ResponseBuilder()
+                .setOk(false)
+                .setStatus(400)
+                .setMessage('Contact already added')
+                .setPayload({
+                    detail: 'Contact already added'
+                })
+                .build()
+            return res.status(400).json(response)
+        }
+
+        await UserRepository.addContact(user_id, user_found._id)
+
         const response = new ResponseBuilder()
             .setOk(true)
+            .setStatus(200)
+            .setMessage('Contact added successfully')
+            .setPayload({
+                detail: 'Contact added successfully'
+            })
+            .build()
+        return res.status(200).json(response)
+
+    } catch (error) {
+        console.error(error)
+        const response = new ResponseBuilder()
+            .setOk(false)
+            .setStatus(500)
+            .setMessage('Internal server error')
+            .setPayload({
+                detail: error.message
+            })
+            .build()
+        return res.status(500).json(response)
+    }
+}
+
+export const getContacts = async (req, res) => {
+    try {
+        const user_id = req.user.id
+        const user = await UserRepository.findContacts(user_id)
+        if (!user) {
+            const response = new ResponseBuilder()
+                .setOk(false)
+                .setStatus(404)
+                .setMessage('User not found')
+                .setPayload({
+                    detail: 'User not found'
+                })
+                .build()
+            return res.status(404).json(response)
+        }
+        if (!user.contacts || user.contacts.length === 0 || user.contacts.length === 0) {
+            const response = new ResponseBuilder()
+                .setOk(false)
+                .setStatus(404)
+                .setMessage('Contacts not found')
+                .setPayload({
+                    detail: 'Contacts not found'
+                })
+                .build()
+            return res.status(404).json(response)
+        }
+        user.contacts = user.contacts
+            .map(contact => {
+                return UserRepository.findById(contact)
+                    .then(user => {
+                        return (
+                            {
+                                _id: user._id,
+                                username: user.username
+                            }
+                        )
+                    })
+            })
+        const response = new ResponseBuilder()
+            .setOk(true)
+            .setStatus(200)
             .setMessage('Contacts found')
             .setPayload({
-                contacts: contacts
+                contacts: user.contacts
             })
             .build()
-        return res.json(response)
-    }
-    catch (error) {
-        console.error('Error withcontacts:', error);
+        return res.status(200).json(response)
+
+    } catch (error) {
+        console.error(error)
         const response = new ResponseBuilder()
             .setOk(false)
             .setStatus(500)
@@ -28,146 +132,59 @@ export const getAllContactController = async (req, res) => {
     }
 }
 
-
-export const getContactByIdController = async (req, res) => {
+export const updateContact = async (req, res) => {
     try{
+        const user_id = req.user.id
         const { contact_id } = req.params
-        const contact_found = await ContactRepository.getContactById(contact_id)
-        if(!contact_found){
+        const user = await UserRepository.findContacts(user_id)
+        if (!user) {
             const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(404)
-            .setMessage('Contact not found')
-            .setPayload({
-                detail: `Contact with id ${contact_id} not found`
-            })
-            .build()
+                .setOk(false)
+                .setStatus(404)
+                .setMessage('User not found')
+                .setPayload({
+                    detail: 'User not found'
+                })
+                .build()
             return res.status(404).json(response)
         }
-        const response = new ResponseBuilder()
-        .setOk(true)
-        .setStatus(200)
-        .setMessage('Contacts found')
-        .setPayload({
-            contact: contact_found
-        })
-        .build()
-    return res.json(response)
-    }
-    catch(error){
-        console.error('Error fetching contact by ID:', error);
-        const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(500)
-            .setMessage('Internal server error')
-            .setPayload({
-                detail: error.message
-            })
-            .build()
-        return res.status(500).json(response)
-    }
-}
-
-
-export const createContactController = async (req, res) => {
-    try {
-        const contactData = req.body;
-
-        if (!contactData || Object.keys(contactData).length === 0) {
+        if (!user.contacts || user.contacts.length === 0 || user.contacts.length === 0) {
             const response = new ResponseBuilder()
                 .setOk(false)
-                .setStatus(400)
-                .setMessage('Invalid contact data')
+                .setStatus(404)
+                .setMessage('Contacts not found')
                 .setPayload({
-                    detail: 'Contact data is required'
+                    detail: 'Contacts not found'
                 })
                 .build()
-            return res.status(400).json(response)
-        }
-
-        const newContact = await ContactRepository.createContact(contactData);
-
-        const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(201)
-            .setMessage('Contact created successfully')
-            .setPayload({
-                contact: newContact
-            })
-            .build()
-        return res.status(201).json(response)
-}
-catch (error) {
-    console.error('Error creating contact:', error);
-    const response = new ResponseBuilder()
-        .setOk(false)
-        .setStatus(500)
-        .setMessage('Error creating contact')
-        .setPayload({
-            detail: error.message
-        })
-        .build()
-    return res.status(500).json(response)
-}
-}
-
-
-
-export const updateContactController = async (req, res) => {
-    try {
-        const { contact_id } = req.params;
-        const updateData = req.body;
-        if (!contact_id) {
+            return res.status(404).json(response)
+        }    
+        if (user.contacts.includes(contact_id)) {
+            await UserRepository.removeContact(user_id, contact_id)
             const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(400)
-                .setMessage('Invalid contact ID')
+                .setOk(true)
+                .setStatus(200)
+                .setMessage('Contact removed successfully')
                 .setPayload({
-                    detail: 'Contact ID is required'
+                    detail: 'Contact removed successfully'
                 })
                 .build()
-            return res.status(400).json(response)
-        }
-
-        if (!updateData || Object.keys(updateData).length === 0) {
-            const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(400)
-                .setMessage('Invalid update data')
-                .setPayload({
-                    detail: 'Update data is required'
-                })
-                .build()
-            return res.status(400).json(response)
-        }
-
-        const updatedContact = await ContactRepository.updateContact(contact_id, updateData);
-
-        if (!updatedContact) {
+            return res.status(200).json(response)
+        } else {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(404)
                 .setMessage('Contact not found')
                 .setPayload({
-                    detail: `Contact with id ${contact_id} not found`
+                    detail: 'Contact not found'
                 })
                 .build()
             return res.status(404).json(response)
         }
-
-        const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(200)
-            .setMessage('Contact updated successfully')
-            .setPayload({
-                contact: updatedContact
-            })
-            .build()
-        return res.json(response)
-    }
-    catch (error) {
-        console.error('Error updating contact:', error);
-        const response = new ResponseBuilder()
+        }
+        catch(error){
+            console.error(error)
+            const response = new ResponseBuilder()
             .setOk(false)
             .setStatus(500)
             .setMessage('Internal server error')
@@ -175,58 +192,48 @@ export const updateContactController = async (req, res) => {
                 detail: error.message
             })
             .build()
-        return res.status(500).json(response)
-    }
-}
-
-
-export const deleteContactController = async (req, res) => {
-    try {
-        const { contact_id } = req.params;
-
-        if (!contact_id) {
-            const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(400)
-                .setMessage('Invalid contact ID')
-                .setPayload({
-                    detail: 'Contact ID is required'
-                })
-                .build()
-            return res.status(400).json(response)
+            return res.status(500).json(response)
         }
-
-        const deletionResult = await ContactRepository.deleteContact(contact_id);
-
-        if (!deletionResult) {
-            const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(404)
-                .setMessage('Contact not found')
-                .setPayload({
-                    detail: `Contact with id ${contact_id} not found`
-                })
-                .build()
-            return res.status(404).json(response)
-        }
-
-        const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(200)
-            .setMessage('Contact deleted successfully')
-            .build()
-        return res.json(response)
     }
-    catch (error) {
-        console.error('Error deleting contact:', error);
-        const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(500)
-            .setMessage('Internal server error')
-            .setPayload({
-                detail: error.message
-            })
-            .build()
-        return res.status(500).json(response)
-    }
-}
+
+export const deleteContact = async (req, res) => {
+        try{
+            const user_id = req.user.id
+            const { contact_id } = req.params
+            const user = await UserRepository.findContacts(user_id)
+            if (!user) {
+                const response = new ResponseBuilder()
+                    .setOk(false)
+                    .setStatus(404)
+                    .setMessage('User not found')
+                    .setPayload({
+                        detail: 'User not found'
+                    })
+                    .build()
+                return res.status(404).json(response)
+            }
+            if (!user.contacts || user.contacts.length === 0 || user.contacts.length === 0) {
+                const response = new ResponseBuilder()
+                    .setOk(false)
+                    .setStatus(404)
+                    .setMessage('Contacts not found')
+                    .setPayload({
+                        detail: 'Contacts not found'
+                    })
+                    .build()                
+                return res.status(404).json(response)
+            }
+                    }
+                    catch(error){
+                        console.error(error)
+                        const response = new ResponseBuilder()
+                        .setOk(false)
+                        .setStatus(500)
+                        .setMessage('Internal server error')
+                        .setPayload({
+                            detail: error.message
+                        })
+                        .build()
+                        return res.status(500).json(response)   
+                    }
+                }

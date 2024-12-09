@@ -1,46 +1,66 @@
 import ENVIROMENT from "../config/enviroment.config.js"
 import User from "../models/user.model.js"
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 import { sendEmail } from "../utils/mail.util.js"
 import UserRepository from "../repositories/user.repository.js"
 import ResponseBuilder from "../utils/Builders/responseBuilder.js"
 
+
+
+
 export const registerUserController = async (req, res) => {
-    try {
-        const { name, email, password } = req.body
-        if (!name || !email || !password) {
+    try{
+        const {name, email, password} = req.body
+        const userExists = await User.findOne({ email: email });
+        console.log({userExists})
+        if (userExists) {
             const response = new ResponseBuilder()
                 .setOk(false)
-                .setStatus(400)
+                .setStatus(400)         
                 .setMessage('Bad request')
-                .setPayload(
-                    {
-                        detail: 'Name, Email and Password are required!'
-                    }
-                )
+                .setPayload({
+                    detail: 'Email User already exists'
+                })
                 .build()
             return res.status(400).json(response);
         }
+        if(!email){
+            const response = new ResponseBuilder()
+            .setOk(false)
+            .setStatus(400)
+            .setMessage('Bad request')
+            .setPayload(
+                {
+                    detail: 'El email no es valido'
+                }
+            )
+            .build()
+            return res.status(400).json(response)
+        }
 
         const hashedPassword = await bcrypt.hash(password, 10)
-        const verificationToken = jwt.sign({ email: email }, ENVIROMENT.JWT_SECRET, {
+        const verificationToken = jwt.sign(
+            {
+                email: email
+            }, ENVIROMENT.JWT_SECRET, {
             expiresIn: '1d'
         })
         const url_verification = `http://localhost:${ENVIROMENT.PORT}/api/auth/verify/${verificationToken}`
         await sendEmail({
             to: email,
-            subject: 'Verify your Email, please!',
+            subject: 'Valida tu correo electronico',
             html: `
-                <h1>Verify your email</h1>
-                <p>Press the click button below to verify your account!</p>
-                <a 
-                    style='background-color: #604cc3; color: white; padding: 5px; border-radius: 8px; '
-                    href="${url_verification}"
-                >Click!</a>
+            <h1>Verificacion de correo electronico</h1>
+            <p>Da click en el boton de abajo para verificar</p>
+            <a 
+                style='background-color: 'black'; color: 'white'; padding: 5px; border-radius: 5px;'
+                href="${url_verification}"
+            >Click aqui</a>
             `
         })
-        const user = new User({
+
+        const newUser = new User({
             name,
             email,
             password: hashedPassword,
@@ -48,232 +68,213 @@ export const registerUserController = async (req, res) => {
             emailVerified: false
         })
 
-        await user.save()
+
+        await newUser.save()
 
         const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(200)
-            .setMessage('Created!')
-            .setPayload({})
-            .build()
-        return res.status(201).json(response);
+        .setOk(true)
+        .setStatus(200)
+        .setMessage('Created')
+        .setPayload({})
+        .build()
+        return res.status(201).json(response)
     }
-    catch (error) {
-        if (error.code === 11000) {
-            res.status(400)
+    catch(error){
+        if(error.code === 11000){
+            res.sendStatus(400)
         }
-        console.error('User register error:', error)
+        console.error('Error al registrar usuario:', error)
         const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(500)
-            .setMessage('Internal server error')
-            .setPayload(
-                {
-                    detail: error.message
-                }
-            )
-            .build()
-        return res.status(500).json(response);
+        .setOk(false)
+        .setStatus(500)
+        .setMessage('Internal server error')
+        .setPayload(
+            {
+                detail: error.message,
+                
+            }
+        )
+        .build()
+        return res.status(500).json(response)
     }
 
 }
 
 
 export const verifyMailValidationTokenController = async (req, res) => {
-    try {
-        const { verification_token } = req.params
-        if (!verification_token) {
-            const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(407)
-                .setMessage('Bad request')
-                .setPayload({
-                    'detail': "Forgot to send the token"
-                })
-                .build()
-            return res.status(407).json(response)
+    try{
+        const {verification_token} = req.params
+        if(!verification_token){
+            const response = new ResponseBuilder().setOk(false)
+            .setStatus(400)
+            .setPayload({
+                'detail': 'Falta enviar token'
+            })
+            .build()
+            return res.json(response)
         }
+
         const decoded = jwt.verify(verification_token, ENVIROMENT.JWT_SECRET)
-        const user = await UserRepository.obtenerPorEmail(decoded.email)
-        if (!user) {
-            const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(404)
-                .setMessage('Bad request')
-                .setPayload({
-                    'detail': "User not found"
-                })
-                .build()
-            return res.status(404).json(response)
+
+
+        const user = await User.findOne({email: decoded.email})
+        if(!user){
+
         }
-        if (user.emailVerified) {
-            const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(201)
-                .setMessage('Success! Email verified!')
-                .setPayload({
-                    detail: "User already verified"
-                })
-                .build()
-            return res.status(201).json(response)
+        if(user.emailVerified){
+
         }
 
         user.emailVerified = true
-        await user.save()
 
+
+        await user.save()
         const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(200)
-            .setMessage('Success! Email verified!')
-            .setPayload({
-                message: 'You successfully verified your Email!'
-            })
-            .build()
-        return res.json(response)
-    }
-    catch (error) {
-        console.error('Verify email error!', error)
-        const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(500)
-            .setMessage('Internal server error')
-            .setPayload(
-                {
-                    detail: error.message
-                }
-            )
-            .build()
-        return res.status(500).json(response);
+        .setOk(true)
+        .setMessage('Email verificado con exito')
+        .setStatus(200)
+        .setPayload({
+            message: "Usuario validado"
+        })
+        .build()
+        res.json(response)
+    }   
+    catch(error){
+        console.error(error)
     }
 }
 
-
 export const loginController = async (req, res) => {
-    try {
-        const { email, password } = req.body
-        const user = await UserRepository.obtenerPorEmail(email)
-        if (!user) {
+    try{
+        const {email, password} = req.body
+        const user = await User.findOne({email})
+        if(!user){
             const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(404)
-                .setMessage('Not Found')
-                .setPayload({
-                    detail: 'Email is not register'
-                })
-                .build()
+            .setOk(false)
+            .setStatus(404)
+            .setMessage('Usuario no encontrado')
+            .setPayload({
+                detail: 'El email no esta registrado'
+            })
+            .build()
             return res.json(response)
         }
-        if (!user.emailVerified) {
+        if(!user.emailVerified){
             const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(403)
-                .setMessage('Forbidden')
-                .setPayload({
-                    detail: 'Please, verify your account before you login!'
-                })
-                .build()
+            .setOk(false)
+            .setStatus(403)
+            .setMessage('Email no verificado')
+            .setPayload(
+                {
+                    detail: 'Por favor, verifica tu correo electronico antes de iniciar sesion'
+                }
+            )
+            .build()
             return res.json(response)
         }
+
         const isValidPassword = await bcrypt.compare(password, user.password)
-        if (!isValidPassword) {
+        if(!isValidPassword){
             const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(401)
-                .setMessage('Invalid Password')
-                .setPayload({
-                    detail: 'Your password is invalid, enter the rigth one!!!'
-                })
-                .build()
+            .setOk(false)
+            .setStatus(401)
+            .setMessage('Credenciales incorrectas')
+            .setPayload({
+                detail: 'Contraseña incorrecta'
+            })
+            .build()
             return res.json(response)
         }
-        const token = jwt.sign({
-            email: user.email,
-            id: user._id,
-            role: user.role
-        },
-            ENVIROMENT.JWT_SECRET,
-            { expiresIn: '1d' }
+        const token = jwt.sign(
+            {
+                email: user.email, 
+                id: user._id, 
+                role: user.role
+            }, 
+            ENVIROMENT.JWT_SECRET, 
+            { expiresIn: '1d'}
         )
         const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(200)
-            .setMessage('Logged!')
-            .setPayload({
-                token,
-                user: {
-                    id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role
-                }
-            })
-            .build()
-        return res.json(response)
+        .setOk(true)
+        .setStatus(200)
+        .setMessage('Logueado')
+        .setPayload({
+            token,
+            user: {
+                id:user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        })
+        .build()
+        res.json(response)
     }
-    catch (error) {
+    catch(error){
         const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(500)
-            .setMessage('Internal server error')
-            .setPayload({
-                detail: error.message
-            })
-            .build()
-        return res.json(response)
+        .setOk(false)
+        .setStatus(500)
+        .setMessage('Internal server error')
+        .setPayload({
+            detail: error.message
+        })
+        .build()
+        res.json(response)
     }
+    
 }
 
 
 export const forgotPasswordController = async (req, res) => {
-    try {
-        const { email } = req.body
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email required!'
-            });
-        }
+    try{
+        const {email} = req.body
+
+        console.log(email)
         const user = await UserRepository.obtenerPorEmail(email)
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'There is no user with this Email!'
-            });
+        if(!user){
+
         }
-        const resetToken = jwt.sign({ email: user.email }, ENVIROMENT.JWT_SECRET, {
+        const resetToken = jwt.sign({email: user.email}, ENVIROMENT.JWT_SECRET, {
             expiresIn: '1h'
         })
-        const URL_FRONT = ENVIROMENT.URL_FRONT
+
+        const URL_FRONT = 'http://localhost:5173'
         const resetUrl = `${URL_FRONT}/reset-password/${resetToken}`
         sendEmail({
             to: user.email,
-            subject: 'Reset Password',
+            subject: 'Restablecer contraseña',
             html: `
-            <div>
-                <h1>You have requested to reset your password!</h1>
-                <p>Click the button below to reset your password!!</p>
-                <a href='${resetUrl}'>Reset Password</a>
-            </div>
+                <div>
+                    <h1>Has solicitado restablecer tu contraseña</h1>
+                    <p>Has click en el enlace de abajo para restablecer tu contraseña</p>
+                    <a href='${resetUrl}'>Restablecer</a>
+                </div>
             `
         })
         const response = new ResponseBuilder()
         response
-            .setOk(true)
-            .setStatus(200)
-            .setMessage('Success!')
-            .setPayload({
-                message: 'We have sent an email to reset your password!'
-            })
-            .build()
-        return res.status(200).json(response);
+        .setOk(true)
+        .setStatus(200)
+        .setMessage('Se envio el correo')
+        .setPayload({
+            detail: 'Se envio un correo electronico con las instrucciones para restablecer la contraseña.'
+        })
+        .build()
+        return res.json(response)
     }
-    catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error!!'
-        });
+    catch(error){
+        const response = new ResponseBuilder()
+        .setOk(false)
+        .setStatus(500)
+        .setMessage('Internal server error')
+        .setPayload({
+            detail: error.message
+        })
+        .build()
+        res.json(response)
     }
 }
+
 
 
 export const resetTokenController = async (req, res) => {
@@ -285,36 +286,36 @@ export const resetTokenController = async (req, res) => {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(400)
-                .setMessage('Password required')
+                .setMessage('Se requiere la nueva contraseña')
                 .setPayload({
-                    detail: 'Password required'
+                    detail: 'Falta contraseña nueva'
                 })
                 .build()
             return res.json(response)
         }
-
         if (!reset_token) {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(400)
-                .setMessage('Invalid token')
+                .setMessage('Token Incorrecto')
                 .setPayload({
-                    detail: 'Token verification failed'
+                    detail: 'El reset_token expiro o no es valido'
                 })
                 .build()
             return res.json(response)
         }
+
         const decoded = jwt.verify(reset_token, ENVIROMENT.JWT_SECRET)
 
-        console.log('decoded: ', decoded);
+        console.log('Token decodificado:',decoded);
 
         if (!decoded) {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(400)
-                .setMessage('Invalid token')
+                .setMessage('Token Incorrecto')
                 .setPayload({
-                    detail: 'Token verification failed'
+                    detail: 'Fallo token de verificación'
                 })
                 .build()
             return res.json(response)
@@ -327,38 +328,32 @@ export const resetTokenController = async (req, res) => {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(400)
-                .setMessage('User not found!')
+                .setMessage('No se encontro el usuario')
                 .setPayload({
-                    detail: 'Invalid User'
+                    detail: 'Usuario inexistente o invalido'
                 })
                 .build()
             return res.json(response)
         }
-
         const encriptedPassword = await bcrypt.hash(password, 10);
-
         user.password = encriptedPassword
         await user.save()
+
         const response = new ResponseBuilder()
             .setOk(true)
             .setStatus(200)
-            .setMessage('Success!')
+            .setMessage('Contraseña restablecida!')
             .setPayload({
-                detail: 'Password updated'
+                detail: 'Se actualizo la contraseña correctamente'
             })
-            .build()
-        return res.status(200).json(response)
-
+        res.status(200).json(response)
+    
     }
     catch (error) {
-        const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(500)
-            .setMessage('Internal server error')
-            .setPayload({
-                detail: error.message
-            })
-            .build()
-        return res.json(response)
+        return res.status(500).json({
+            ok: false,
+            message: 'Error interno del servidor',
+            error: error.message,
+        });
     }
 }

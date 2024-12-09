@@ -1,7 +1,7 @@
 import MessageRepository from "../repositories/message.repository.js"
 import UserRepository from "../repositories/user.repository.js"
 
-const createMessage = async (req, res) => {
+export const createMessage = async (req, res) => {
     try{
         const user_id = req.user.id
         const {receiver_id, content} = req.body
@@ -34,7 +34,7 @@ const createMessage = async (req, res) => {
     }
 }
 
-const getConversation = async (req, res) => {  
+export const getConversation = async (req, res) => {  
     try{
         const user_id = req.user.id
         const {receiver_id} = req.params
@@ -58,4 +58,4 @@ const getConversation = async (req, res) => {
     }
 }
 
-export default { createMessage, getConversation }
+

@@ -1,29 +1,29 @@
 import express from "express";
-import { verifyApiKeyMiddleware } from "../middlewares/auth.middleware.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
-import {
-    createContactController,
-    deleteContactController,
-    getAllContactController,
-    getContactByIdController,
-    updateContactController
-} from "../controllers/contact.controller.js";
+import { verifyApikeyMiddleware, verifyTokenMiddleware } from "../middlewares/auth.middleware.js";
+import { getContacts, addContact, updateContact, deleteContact } from "../controllers/contact.controller.js";
+import { validateContactId } from "../middlewares/validate.contact.js";
+
+const contactRouter = express.Router();
 
 
-const contactRouter = express.Router()
-
-contactRouter.use(verifyApiKeyMiddleware)
-contactRouter.use(authMiddleware)
-contactRouter.use(express.json())
+contactRouter.use(verifyTokenMiddleware, verifyApikeyMiddleware); 
 
 
-
-contactRouter.get('/', authMiddleware(), getAllContactController)
-contactRouter.get("/:contact_id", authMiddleware(), getContactByIdController)
-contactRouter.post('/', authMiddleware(['user']), createContactController)
-contactRouter.put('/:contact_id', authMiddleware(['user']), updateContactController)
-contactRouter.delete('/:contact_id', authMiddleware(['user']), deleteContactController)
+contactRouter.get("/", getContacts);
 
 
+contactRouter.post("/", verifyTokenMiddleware(['user']), addContact); 
 
-export default contactRouter
+
+contactRouter.get("/:contact_id", verifyTokenMiddleware(), validateContactId, getContacts); 
+
+
+contactRouter.put("/:contact_id", verifyTokenMiddleware(['user']), validateContactId, updateContact); 
+
+
+contactRouter.delete("/:contact_id", verifyTokenMiddleware(['user']),validateContactId, deleteContact); 
+
+
+export default contactRouter;
+
+
