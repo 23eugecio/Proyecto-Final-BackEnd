@@ -7,20 +7,10 @@ const contactRouter = express.Router();
 
 
 contactRouter.use(verifyTokenMiddleware, verifyApiKeyMiddleware); 
-
-
 contactRouter.get("/", getContacts);
-
-
 contactRouter.post("/", verifyTokenMiddleware(['user']), addContact); 
-
-
 contactRouter.get("/:contact_id", verifyTokenMiddleware(), validateContactId, getContacts); 
-
-
 contactRouter.put("/:contact_id", verifyTokenMiddleware(['user']), validateContactId, updateContact); 
-
-
 contactRouter.delete("/:contact_id", verifyTokenMiddleware(['user']),validateContactId, deleteContact); 
 
 

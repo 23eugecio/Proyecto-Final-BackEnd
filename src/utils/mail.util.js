@@ -1,17 +1,17 @@
 import transporter from "../config/transporter.config.js";
 
-export const sendEmail = async (options) => {
+const sendEmail = async (options) => {
     try {
         let response = await transporter.sendMail(options);
-        return response;
+        return response
     } catch (error) {
         console.error('Error to send email: ', error);
         throw error;
     }
 };
+export { sendEmail }
 
-
-export const sendLoginEmail = async (userEmail) => {
+/* export const sendLoginEmail = async (userEmail) => {
     const mailOptions = {
         html: 'Hello from WhatsApp',  
         subject: 'We are testing the connection', 
@@ -35,3 +35,4 @@ const simulateLogin = async () => {
 simulateLogin();
 
 export default sendEmail 
+ */

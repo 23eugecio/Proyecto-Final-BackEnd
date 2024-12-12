@@ -10,55 +10,43 @@ import ResponseBuilder from "../utils/Builders/responseBuilder.js"
 
 
 export const registerUserController = async (req, res) => {
-    try{
-        const {name, email, password} = req.body
-        const userExists = await User.findOne({ email: email });
-        console.log({userExists})
-        if (userExists) {
+    try {
+        const { name, email, password } = req.body
+        if (!email) {
             const response = new ResponseBuilder()
                 .setOk(false)
-                .setStatus(400)         
+                .setStatus(400)
                 .setMessage('Bad request')
-                .setPayload({
-                    detail: 'Email User already exists'
-                })
+                .setPayload(
+                    {
+                        detail: 'Invalid email'
+                    }
+                )
                 .build()
-            return res.status(400).json(response);
-        }
-        if(!email){
-            const response = new ResponseBuilder()
-            .setOk(false)
-            .setStatus(400)
-            .setMessage('Bad request')
-            .setPayload(
-                {
-                    detail: 'El email no es valido'
-                }
-            )
-            .build()
             return res.status(400).json(response)
         }
-
+        const existentUser = await User.findOne({ email: email })
+        console.log({ existentUser })
+        if (existentUser) {
+            const response = new ResponseBuilder()
+                .setOk(false)
+                .setStatus(400)
+                .setMessage('Bad request')
+                .setPayload(
+                    {
+                        detail: 'Email already exists!'
+                    }
+                )
+                .build()
+            return res.status(400).json(response)
+        } 
+            const verificationToken = jwt.sign(
+                {
+                    email: email
+                }, ENVIROMENT.JWT_SECRET, {
+                expiresIn: '1d'
+            })
         const hashedPassword = await bcrypt.hash(password, 10)
-        const verificationToken = jwt.sign(
-            {
-                email: email
-            }, ENVIROMENT.JWT_SECRET, {
-            expiresIn: '1d'
-        })
-        const url_verification = `http://localhost:${ENVIROMENT.PORT}/api/auth/verify/${verificationToken}`
-        await sendEmail({
-            to: email,
-            subject: 'Valida tu correo electronico',
-            html: `
-            <h1>Verificacion de correo electronico</h1>
-            <p>Da click en el boton de abajo para verificar</p>
-            <a 
-                style='background-color: 'black'; color: 'white'; padding: 5px; border-radius: 5px;'
-                href="${url_verification}"
-            >Click aqui</a>
-            `
-        })
 
         const newUser = new User({
             name,
@@ -68,33 +56,58 @@ export const registerUserController = async (req, res) => {
             emailVerified: false
         })
 
-
         await newUser.save()
 
+
+        const url_verification = `http://localhost:${ENVIROMENT.PORT}/api/auth/verify/${verificationToken}`
+        await sendEmail({
+            to: email,
+            subject: 'Valida tu correo electronico',
+            html: `
+            <h1>Verificacion de correo electronico</h1>
+            <p>Da click en el boton de abajo para verificar</p>
+            <a 
+                style='background-color: 'green'; color: 'white'; padding: 5px; border-radius: 5px;'
+                href="${url_verification}"
+            >Click aqui</a>
+            `
+        })
+
+
         const response = new ResponseBuilder()
-        .setOk(true)
-        .setStatus(200)
-        .setMessage('Created')
-        .setPayload({})
-        .build()
+            .setOk(true)
+            .setStatus(200)
+            .setMessage('Created')
+            .setPayload({})
+            .build()
         return res.status(201).json(response)
     }
-    catch(error){
+    catch (error) {
         if(error.code === 11000){
-            res.sendStatus(400)
+            const response = new ResponseBuilder()
+                .setOk(false)
+                .setStatus(400)
+                .setMessage('Bad request')
+                .setPayload(
+                    {
+                        detail: 'Email already exists!'
+                    }
+                )
+                .build()
+                return res.json(response)
         }
-        console.error('Error al registrar usuario:', error)
+        console.error('Error to register user: ', error)
         const response = new ResponseBuilder()
-        .setOk(false)
-        .setStatus(500)
-        .setMessage('Internal server error')
-        .setPayload(
-            {
-                detail: error.message,
-                
-            }
-        )
-        .build()
+            .setOk(false)
+            .setStatus(500)
+            .setMessage('Internal server error')
+            .setPayload(
+                {
+                    detail: error.message,
+
+                }
+            )
+            .build()
         return res.status(500).json(response)
     }
 
