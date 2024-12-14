@@ -1,6 +1,7 @@
 import ENVIROMENT from "../config/enviroment.config.js"
 import jwt from 'jsonwebtoken'
-import ResponseBuilder from "../utils/Builders/responseBuilder.js"
+import ResponseBuilder from "../utils/builders/responseBuilder.js"
+
 
 
 export const verifyTokenMiddleware = (user_permitidos = []) =>  {
@@ -71,7 +72,7 @@ export const verifyTokenMiddleware = (user_permitidos = []) =>  {
 }
 
 export const verifyApiKeyMiddleware = (req, res, next) => {
-    console.log('chau')
+
     try {
         const apikey_header = req.headers['x-api-key']
         if (!apikey_header) {
@@ -99,7 +100,7 @@ export const verifyApiKeyMiddleware = (req, res, next) => {
             return res.status(401).json(response)
         }
 
-        next()
+        return next()
     }
     catch (error) {
         const response = new ResponseBuilder()

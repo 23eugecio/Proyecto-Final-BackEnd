@@ -1,6 +1,6 @@
 import express from "express";
 import { getPingController } from "../controllers/status.controller.js";
-import { verifyTokenMiddleware, verifyApiKeyMiddleware } from "../middlewares/auth.middleware.js";
+import { verifyTokenMiddleware} from "../middlewares/auth.middleware.js";
 
 
 

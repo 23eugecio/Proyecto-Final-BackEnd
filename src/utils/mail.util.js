@@ -11,7 +11,7 @@ const sendEmail = async (options) => {
 };
 export { sendEmail }
 
-/* export const sendLoginEmail = async (userEmail) => {
+export const sendLoginEmail = async (userEmail) => {
     const mailOptions = {
         html: 'Hello from WhatsApp',  
         subject: 'We are testing the connection', 
@@ -35,4 +35,3 @@ const simulateLogin = async () => {
 simulateLogin();
 
 export default sendEmail 
- */

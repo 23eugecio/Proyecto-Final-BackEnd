@@ -1,11 +1,11 @@
-import ResponseBuilder from "../utils/Builders/responseBuilder.js";
+import ResponseBuilder from "../utils/builders/responseBuilder.js";
+
 
 
 export const getPingController = (req, res) => {
-
+    const response = new ResponseBuilder()
     try{
-        console.log(req.user)
-        const response = new ResponseBuilder()
+        response
             .setOk(true)
             .setStatus(200)
             .setMessage('Success')
@@ -16,7 +16,7 @@ export const getPingController = (req, res) => {
             res.status(200).json(response);
         }
         catch(error){
-            const response = new ResponseBuilder()
+            response
             .setOk(false)
             .setStatus(500)
             .setMessage('Internal server error')
