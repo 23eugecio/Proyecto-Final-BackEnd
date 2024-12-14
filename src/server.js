@@ -8,7 +8,6 @@ import messagesRouter from './routes/message.router.js'
 import contactRouter from './routes/contact.router.js'
 import statusRouter from './routes/status.router.js';
 import { verifyApiKeyMiddleware } from './middlewares/auth.middleware.js';
-import ContactRepository from './repositories/contact.repository.js';
 
 const app = express()
 
@@ -44,10 +43,8 @@ app.get('/', (req, res) => {
     res.send('Hello World!')
 })
 
-configDb()
+export default app
 
-
-ContactRepository.getAll()
 
 
 app.listen(ENVIROMENT.PORT, () => {
