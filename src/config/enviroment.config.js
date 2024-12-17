@@ -11,6 +11,7 @@ export const ENVIROMENT = {
     GMAIL_USER: process.env.GMAIL_USER,
     URL_FRONT: process.env.URL_FRONT,  
     API_KEY_INTERN: process.env.API_KEY_INTERN,
+    URL_BACK: process.env.URL_BACK
 
 };
 

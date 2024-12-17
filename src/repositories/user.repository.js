@@ -15,7 +15,7 @@ class UserRepository {
     static async findByEmail(email) {
         try {
             const user = await User.findOne({ email });
-            return user;  
+            return user;
         } catch (error) {
             throw new Error("Error finding user by email: " + error.message);
         }
@@ -29,7 +29,7 @@ class UserRepository {
                 {
                     $push: { contacts: contact_id }
                 },
-                { new: true }  
+                { new: true }
             );
             return updatedUser;
         } catch (error) {
@@ -48,9 +48,9 @@ class UserRepository {
     }
 
 
-    static async findUserByUsername(username) {
+    static async findUserByUsername(name) {
         try {
-            const user = await User.findOne({ username });
+            const user = await User.findOne({ name: name });
             return user;
         } catch (error) {
             throw new Error("Error finding user by username: " + error.message);
@@ -65,19 +65,28 @@ class UserRepository {
         } catch (error) {
             throw new Error("Error finding user contacts: " + error.message);
         }
+    
     }
-
-
     static async setEmailVerified(value, user_id) {
         try {
-            const user = await User.findByIdAndUpdate(
-                user_id,
-                { emailVerified: value },
-                { new: true }  
-            );
+            const user = await UserRepository.findUserById(user_id);
+            
+            if (!user) {
+                throw new Error('Usuario no encontrado');
+            }
+    
+            user.emailVerified = value;
+            await UserRepository.save(user);
+    
             return user;
         } catch (error) {
-            throw new Error("Error updating email verification: " + error.message);
+            console.error('Error al actualizar verificación de email:', error);
+
+            if (error instanceof Error) {
+                throw new Error(`No se pudo actualizar la verificación de email: ${error.message}`);
+            }
+    
+            throw error;
         }
     }
 }

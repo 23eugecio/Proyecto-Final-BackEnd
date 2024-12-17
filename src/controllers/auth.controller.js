@@ -11,29 +11,30 @@ export const registerUserController = async (req, res) => {
         const { name, email, password } = req.body
 
         if (!name || !email || !password) {
+
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(400)
                 .setMessage('Bad request')
                 .setPayload({
-                    detail: 'Todos los campos son obligatorios'
+                    detail: 'Requide name, email and password'
                 })
                 .build()
             return res.status(400).json(response)
         }
 
         if (!email) {
+            console.log('Email is missing');
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(400)
                 .setMessage('Bad request')
                 .setPayload({
-                    detail: 'Email inválido'
+                    detail: 'Requide email'
                 })
                 .build()
             return res.status(400).json(response)
             }
-
         const verificationToken = jwt.sign(
             { email: email }, 
             ENVIROMENT.JWT_SECRET, 
@@ -53,6 +54,7 @@ export const registerUserController = async (req, res) => {
         await newUser.save()
 
         const url_verification = `http://localhost:${ENVIROMENT.PORT}/api/auth/verify/${verificationToken}`
+
         await sendEmail({
             to: email,
             subject: 'Verify your email',
@@ -72,10 +74,22 @@ export const registerUserController = async (req, res) => {
             .setMessage('Created')
             .setPayload({})
             .build()
-        return res.status(201).json(response)
+        return res.status(201).json({
+            ok: true,
+            status: 201,            
+            message: 'User created',
+            data: {
+                user: {
+                    name: newUser.name,
+                    email: newUser.email,
+                    id: newUser._id
+                }
+
+            }
+        })
 
     } catch (error) {
-        console.error('Error to register user: ', error)
+        console.error('Error to register user: ', error) 
 
         if (error.code === 11000) {
             const response = new ResponseBuilder()
@@ -159,45 +173,47 @@ export const verifyMailValidationTokenController = async (req, res) => {
 
 export const loginController = async (req, res) => {
     try {
-        const { email, password } = req.body
-        const user = await User.findOne({ email })
+        const { email, password } = req.body;
+
+        const user = await User.findOne({ email });
+
         if (!user) {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(404)
-                .setMessage('Usuario no encontrado')
+                .setMessage('User not found')
                 .setPayload({
-                    detail: 'El email no esta registrado'
+                    detail: 'No registered user with this email'
                 })
-                .build()
-            return res.json(response)
+                .build();
+            return res.status(404).json(response);
         }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            const response = new ResponseBuilder()
+                .setOk(false)
+                .setStatus(401)
+                .setMessage('Invalid credentials')
+                .setPayload({
+                    detail: 'Incorrect password'
+                })
+                .build();
+            return res.status(401).json(response);
+        }
+
         if (!user.emailVerified) {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(403)
-                .setMessage('Email no verificado')
-                .setPayload(
-                    {
-                        detail: 'Por favor, verifica tu correo electronico antes de iniciar sesion'
-                    }
-                )
-                .build()
-            return res.json(response)
+                .setMessage('Please verify your email')
+                .setPayload({
+                    detail: 'Please verify your email'
+                })
+                .build();
+            return res.status(403).json(response);
         }
 
-        const isValidPassword = await bcrypt.compare(password, user.password)
-        if (!isValidPassword) {
-            const response = new ResponseBuilder()
-                .setOk(false)
-                .setStatus(401)
-                .setMessage('Credenciales incorrectas')
-                .setPayload({
-                    detail: 'Contraseña incorrecta'
-                })
-                .build()
-            return res.json(response)
-        }
         const token = jwt.sign(
             {
                 email: user.email,
@@ -205,11 +221,12 @@ export const loginController = async (req, res) => {
             },
             ENVIROMENT.JWT_SECRET,
             { expiresIn: '1d' }
-        )
+        );
+
         const response = new ResponseBuilder()
             .setOk(true)
             .setStatus(200)
-            .setMessage('Logueado')
+            .setMessage('Login successful')
             .setPayload({
                 token,
                 user: {
@@ -218,8 +235,9 @@ export const loginController = async (req, res) => {
                     email: user.email,
                 }
             })
-            .build()
-        return res.status(200).json(response)
+            .build();
+
+        return res.status(200).json(response);
     }
     catch (error) {
         const response = new ResponseBuilder()
@@ -229,12 +247,10 @@ export const loginController = async (req, res) => {
             .setPayload({
                 detail: error.message
             })
-            .build()
-        return res.status(500).json(response)
+            .build();
+        return res.status(500).json(response);
     }
-
 }
-
 
 export const forgotPasswordController = async (req, res) => {
     try {
@@ -245,7 +261,7 @@ export const forgotPasswordController = async (req, res) => {
             .setStatus(400)
             .setMessage('Bad request')
             .setPayload({
-                detail: 'Falta email'
+                detail: 'Missing email'
             })
             .build()
             return res.status(400).json(response)
@@ -266,7 +282,7 @@ export const forgotPasswordController = async (req, res) => {
         const resetToken = jwt.sign({ email: user.email }, ENVIROMENT.JWT_SECRET, {
             expiresIn: '1h'
         })
-        const resetUrl = `${URL_FRONT}/api/auth/reset-password/${resetToken}`
+        const resetUrl = `${ENVIROMENT.URL_FRONT}/api/auth/reset-password/${resetToken}`
         sendEmail({
             to: user.email,
             subject: 'Reset Password',
@@ -313,9 +329,9 @@ export const resetTokenController = async (req, res) => {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(400)
-                .setMessage('Se requiere la nueva contraseña')
+                .setMessage('New password is required')
                 .setPayload({
-                    detail: 'Falta contraseña nueva'
+                    detail: 'Missing new password'
                 })
                 .build()
             return res.status(400).json(response)
@@ -324,9 +340,9 @@ export const resetTokenController = async (req, res) => {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(400)
-                .setMessage('Token Incorrecto')
+                .setMessage('Wrong token')
                 .setPayload({
-                    detail: 'El reset_token expiro o no es valido'
+                    detail: 'Reset token not found'
                 })
                 .build()
             return res.status(400).json(response)
@@ -340,9 +356,9 @@ export const resetTokenController = async (req, res) => {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(400)
-                .setMessage('Token Incorrecto')
+                .setMessage('Wrong token')
                 .setPayload({
-                    detail: 'Fallo token de verificación'
+                    detail: 'Invalid token'
                 })
                 .build()
             return res.status(400).json(response)
@@ -355,9 +371,9 @@ export const resetTokenController = async (req, res) => {
             const response = new ResponseBuilder()
                 .setOk(false)
                 .setStatus(400)
-                .setMessage('No se encontro el usuario')
+                .setMessage('User not found')
                 .setPayload({
-                    detail: 'Usuario inexistente o invalido'
+                    detail: 'User not found'
                 })
                 .build()
             return res.status(400).json(response)
@@ -369,11 +385,11 @@ export const resetTokenController = async (req, res) => {
         const response = new ResponseBuilder()
             .setOk(true)
             .setStatus(200)
-            .setMessage('Contraseña restablecida!')
+            .setMessage('Password reset successfully!')
             .setPayload({
-                detail: 'Se actualizo la contraseña correctamente'
+                detail: 'Password reset successfully'
             })
-        res.status(200).json(response)
+        return res.status(200).json(response)
 
     }
     catch (error) {
@@ -386,15 +402,5 @@ export const resetTokenController = async (req, res) => {
             })
             .build()
         return res.status(500).json(response)
-    }
-    finally {
-        const response = new ResponseBuilder()
-            .setOk(true)
-            .setStatus(200)
-            .setMessage('Contraseña restablecida!')
-            .setPayload({
-                detail: 'Se actualizo la contraseña correctamente'
-            })
-        res.status(200).json(response)
     }
 }

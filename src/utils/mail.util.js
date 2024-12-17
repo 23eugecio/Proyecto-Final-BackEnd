@@ -11,13 +11,12 @@ const sendEmail = async (options) => {
 };
 export { sendEmail }
 
-export const sendLoginEmail = async (userEmail) => {
+/* export const sendLoginEmail = async (userEmail) => {
     const mailOptions = {
         html: 'Hello from WhatsApp',  
         subject: 'We are testing the connection', 
         to: userEmail  
     };
-
     try {
         const response = await sendEmail(mailOptions);
         console.log('Email sent successfully:', response);
@@ -31,7 +30,7 @@ const simulateLogin = async () => {
     await sendLoginEmail(userEmail);
 };
 
+simulateLogin(); */
 
-simulateLogin();
 
 export default sendEmail 

@@ -9,7 +9,8 @@ import contactRouter from './routes/contact.router.js'
 import statusRouter from './routes/status.router.js';
 import { verifyApiKeyMiddleware } from './middlewares/auth.middleware.js';
 
-const app = express()
+const app = express();
+const PORT = ENVIROMENT.PORT || 3000
 
 
 const corsOptions = {
@@ -43,10 +44,12 @@ app.get('/', (req, res) => {
     res.send('Hello World!')
 })
 
-export default app
+
 
 
 
 app.listen(ENVIROMENT.PORT, () => {
     console.log(`Server is running on port ${ENVIROMENT.PORT}`)
 })
+
+export default app
