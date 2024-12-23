@@ -18,6 +18,7 @@ authRouter.post('/login', loginController);
 authRouter.post('/forgot-password', verifyApiKeyMiddleware, forgotPasswordController);
 authRouter.put('/reset-password/:reset_token', resetTokenController);
 
+
 export default authRouter
 
 
