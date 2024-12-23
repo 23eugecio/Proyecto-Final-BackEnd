@@ -22,5 +22,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.2",
     "nodemailer": "^6.9.16"
+  },
+  "devDependencies": {
+    "@vercel/node": "^5.0.0"
   }
 }
