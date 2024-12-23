@@ -1,9 +1,11 @@
+
 import UserRepository from "../repositories/user.repository.js";
 
 const addContact = async (req, res) => {
     try{
         const user_id = req.user.id
         const {contact_username} = req.body
+
         const user_found = await UserRepository.findUserByUsername(contact_username)
 
         if(!user_found){
@@ -13,7 +15,6 @@ const addContact = async (req, res) => {
                 message: 'User not found'
             })
         }
-
         const user = await UserRepository.findUserById(user_id)
         if(user.contacts.includes(user_found._id)){
             return res.status(400).json({
@@ -22,8 +23,6 @@ const addContact = async (req, res) => {
                 message: 'User already in contacts'
             })
         }
-
-
         await UserRepository.addContact(user_id, user_found._id)
 
         return res.status(200).json({

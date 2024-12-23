@@ -8,7 +8,7 @@ const statusRouter = express.Router()
 
 
 statusRouter.get('/ping', getPingController)
-statusRouter.get('/protected-route/ping', verifyTokenMiddleware(), getPingController)
+statusRouter.get('/protected-route/ping', verifyTokenMiddleware, getPingController)
 
 
 

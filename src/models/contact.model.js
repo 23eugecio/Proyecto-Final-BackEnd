@@ -13,10 +13,13 @@ const contactSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
-    image: { 
-        type: String, 
-        default: ''}, // Imagen en base64 opcional
-}, {
+    image_base_64: {
+        type: String
+    },
+    active: {
+        type: Boolean,
+        default: true
+    },
     timestamps: new Date()
 });
 
