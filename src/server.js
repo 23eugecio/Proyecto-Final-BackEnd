@@ -12,31 +12,21 @@ import { verifyApiKeyMiddleware } from './middlewares/auth.middleware.js';
 const app = express();
 
 const corsOptions = {
-    origin: (origin, callback) => {
-        const alloewdOrigins = [
-            process.env.URL_FRONT, 'https://proyecto-final-front-end-khaki.vercel.app'
-        ]
-    if (alloewdOrigins.indexOf(origin) || !origin) {callback(null, true) 
-    }else {
-callback(new Error(`Not allowed by CORS: ${origin}`))
-    }
-}, 
-methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-allowedHeaders: ['Content-Type', 'Authorization'],
-credentials: true,
+    origin: "http://localhost:5173", 
 }
 
 app.use(cors(corsOptions))
-app.options('*', cors(corsOptions))
+
 app.use(express.json())
 
 app.use(express.urlencoded({ extended: true }))
 
+app.use('/api/auth', authRouter)
 
 app.use(verifyApiKeyMiddleware)
 
 app.use('/api/status', statusRouter)
-app.use('/api/auth', authRouter)
+
 app.use('/api/contacts', contactRouter)
 app.use('/api/message', messageRouter)
 
