@@ -1,28 +1,32 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
+// Definir esquema de contacto
 const contactSchema = new mongoose.Schema({
-    name: { 
-        type: String, 
-        required: true 
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
-    phone: { 
-        type: String, 
-        required: true 
+    contact_username: {
+        type: String,
+        required: true
     },
-    email: { 
-        type: String, 
-        required: true 
+    email: {
+        type: String,
+        required: true
     },
-    image_base_64: {
+    image: {
         type: String
     },
-    active: {
-        type: Boolean,
-        default: true
-    },
-    timestamps: new Date()
+    timestamp: {
+        type: Date,
+        default: Date.now
+    }
+}, {
+    timestamps: true // Agrega automáticamente `createdAt` y `updatedAt`
 });
 
+// Crear modelo de contacto
 const Contact = mongoose.model('Contact', contactSchema);
 
-export default Contact
+export default Contact;

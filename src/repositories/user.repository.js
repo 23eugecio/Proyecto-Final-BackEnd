@@ -1,23 +1,15 @@
-import User from "../models/user.model.js";
+import User from '../models/user.model.js';
 
-class UserRepository{
-    static async obtenerPorId(id){
-        const user = await User.findOne({_id: id})
-        return user
-    }
-    static async obtenerPorEmail(email){
-        const user = await User.findOne({email})
-        return user
-    }
-    static async guardarUsuario (user){
-        return await user.save()
-    }
-
-    static async setEmailVerified(value, user_id){
-        const user = await UserRepository.obtenerPorId(user_id)
-        user.emailVerified = value
-        return await UserRepository.guardarUsuario()
+class UserRepository {
+    static async addContact(user_id, contact_id) {
+        return await User.findByIdAndUpdate(
+            user_id, 
+            { 
+                $addToSet: { contacts: contact_id } 
+            }, 
+            { new: true }
+        );
     }
 }
 
-export default UserRepository
+export default UserRepository;

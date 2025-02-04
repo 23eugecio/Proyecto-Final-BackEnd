@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken';
-import ENVIROMENT from '../config/enviroment.config.js';
+import ENVIRONMENT from '../config/environment.config.js';
+
 
 export const verifyToken = (token) => {
     try {
-        const decoded = jwt.verify(token, ENVIROMENT.JWT_SECRET);
+        const decoded = jwt.verify(token, ENVIRONMENT.JWT_SECRET);
         return decoded;
     } catch (error) {
         throw new Error('Invalid or expired token');

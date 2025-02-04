@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const ENVIROMENT = {
+export const ENVIRONMENT = {
     PORT: process.env.PORT, 
     DB_URL: process.env.DB_URL,
     JWT_SECRET: process.env.JWT_SECRET,
@@ -16,4 +16,4 @@ export const ENVIROMENT = {
 
 };
 
-export default ENVIROMENT;
+export default ENVIRONMENT;

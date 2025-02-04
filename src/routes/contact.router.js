@@ -1,13 +1,11 @@
-import express from "express";
-import { addContact, getContacts } from "../controllers/contact.controller.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
-
+// contact.routes.js
+import express from 'express';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { getContacts, addContact } from '../controllers/contact.controller.js';
 
 const contactRouter = express.Router();
 
-contactRouter.post('/add', authMiddleware, addContact)
-contactRouter.get('/contactService', authMiddleware, getContacts)
+contactRouter.get('/', authMiddleware, getContacts);
+contactRouter.post('/add', authMiddleware, addContact);
 
-export default contactRouter
-
-
+export default contactRouter;

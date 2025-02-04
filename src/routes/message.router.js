@@ -1,20 +1,11 @@
-import express from "express";
-import { verifyTokenMiddleware } from "../middlewares/auth.middleware.js";
-import { createMessage, getConversation } from "../controllers/message.controller.js";
-
-
+import express from 'express';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { createMessage, getConversation } from '../controllers/message.controller.js';
 
 const messageRouter = express.Router();
 
+// Definir rutas de mensajes
+messageRouter.post('/', authMiddleware, createMessage);
+messageRouter.get('/:receiver_id', authMiddleware, getConversation);
 
-
-messageRouter.post('/send', verifyTokenMiddleware, createMessage)
-messageRouter.get('/conversation/:receiver_id', verifyTokenMiddleware, getConversation)
-
-export default messageRouter
-
-
-
-
-
-
+export default messageRouter;

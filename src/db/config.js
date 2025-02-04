@@ -1,9 +1,9 @@
 
 import mongoose from "mongoose";
-import ENVIROMENT from "../config/enviroment.config.js";
+import environment from "../config/environment.config.js";
 
 
-mongoose.connect(ENVIROMENT.DB_URL)
+mongoose.connect(environment.DB_URL)
 .then(
     () => {
         console.log('Conexión exitosa con la DB')
